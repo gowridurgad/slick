@@ -1,10 +1,11 @@
-name: "CI Workflow"
-on: # yamllint disable-line rule:truthy
+name: Test
+on:
   push:
   pull_request:
   workflow_dispatch:
+
 jobs:
-  Test-Crosscompile:
+  Test:
     runs-on: "ubuntu-24.04"
     steps:
     - uses: "actions/checkout@v4"
@@ -14,6 +15,12 @@ jobs:
     - name: "provision go tools"
       run: "make go"
     - run: "mage test"
-    - run: "mage port"
-
- 
+    - name: Cache Go dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-${{ github.workflow }}-${{ github.run_id }}
+        restore-keys: |
+          ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-
